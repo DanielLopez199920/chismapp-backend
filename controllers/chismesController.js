@@ -13,8 +13,9 @@ const publicarChisme = async (req, res) => {
 
     const nuevoChisme = new Chisme({ contenido, alias, zona, userId, etiqueta });
     await nuevoChisme.save();
+req.io.emit("nuevo-chisme", nuevoChisme); // 🔥 EMITIR EVENTO
+res.status(201).json(nuevoChisme);
 
-    res.status(201).json(nuevoChisme);
   } catch (error) {
     res.status(500).json({ error: "Error al publicar chisme" });
   }
@@ -39,9 +40,11 @@ const agregarComentario = async (req, res) => {
     if (!chisme) return res.status(404).json({ error: "Chisme no encontrado" });
 
     chisme.comentarios.push(comentario);
-    await chisme.save();
+await chisme.save();
 
-    res.json(chisme);
+req.io.emit("nuevo-comentario", chisme); // 🔥 EMITIR EVENTO
+res.json(chisme);
+
   } catch (error) {
     res.status(500).json({ error: "Error al agregar comentario" });
   }
@@ -57,12 +60,13 @@ const reaccionarChisme = async (req, res) => {
 
     // Eliminar reacción anterior del mismo userId
     chisme.reacciones = chisme.reacciones.filter(r => r.userId !== userId);
+chisme.reacciones.push({ userId, tipo });
 
-    // Agregar nueva reacción
-    chisme.reacciones.push({ userId, tipo });
+await chisme.save();
 
-    await chisme.save();
-    res.json(chisme);
+req.io.emit("nueva-reaccion", chisme); // 🔥 EMITIR EVENTO
+res.json(chisme);
+
   } catch (error) {
     console.error("Error al reaccionar:", error.message);
     res.status(500).json({ error: "Error al reaccionar" });
