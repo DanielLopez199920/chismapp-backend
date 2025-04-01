@@ -72,11 +72,37 @@ res.json(chisme);
     res.status(500).json({ error: "Error al reaccionar" });
   }
 };
+const reportarChisme = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { id } = req.params;
 
+    const chisme = await Chisme.findById(id);
+    if (!chisme) return res.status(404).json({ error: "Chisme no encontrado" });
+
+    if (chisme.reportes.includes(userId)) {
+      return res.status(400).json({ error: "Ya reportaste este chisme" });
+    }
+
+    chisme.reportes.push(userId);
+
+    if (chisme.reportes.length >= 3) {
+      await chisme.deleteOne();
+      req.io.emit("chisme-eliminado", chisme._id);
+      return res.json({ mensaje: "Chisme eliminado por múltiples reportes" });
+    }
+
+    await chisme.save();
+    res.json({ mensaje: "Reporte registrado" });
+  } catch (error) {
+    res.status(500).json({ error: "Error al reportar chisme" });
+  }
+};
 
 module.exports = {
   publicarChisme,
   obtenerChismesPorZona,
   agregarComentario,
-  reaccionarChisme
+  reaccionarChisme,
+  reportarChisme
 };

@@ -1,3 +1,4 @@
+// models/Chisme.js
 const mongoose = require("mongoose");
 
 const chismeSchema = new mongoose.Schema({
@@ -11,14 +12,13 @@ const chismeSchema = new mongoose.Schema({
     default: Date.now
   },
   comentarios: [String],
-
-  // 👇 Cambia esto correctamente:
   reacciones: [
     {
       userId: String,
       tipo: String
     }
-  ]
+  ],
+  reportes: [String] // 👈 Aquí se almacenan los IDs de usuarios que reportaron
 });
 
 module.exports = mongoose.model("Chisme", chismeSchema);
